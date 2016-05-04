@@ -50,14 +50,14 @@ data.generator<-function(points,days,psi,p,phi,gamma,years) {
         yUMF
 } 
 
-
-
 simulatetrend <- function(points, days, psi, p, phi, gamma, years, nsim) {
         #store results
         #gm_lambda <- numeric()
         time <- 1:years
+        seeds <- seeds
         results <- foreach(i = 1:nsim, .combine = rbind, .packages = "unmarked", .export = c("data.generator","gm_mean")) %dopar% {
                 #generate data and store projected results
+                set.seed(seeds[i])
                 data <- data.generator(points,days,psi,p,phi,gamma,years)
                 model <- colext(~1, ~1, ~1, ~1, data = data, method = "BFGS",se = FALSE)
                 timeseries <- as.numeric(smoothed(model)[2,])
