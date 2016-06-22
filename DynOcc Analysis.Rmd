@@ -1,7 +1,7 @@
 ---
 title: "Simulation analysis - dynamic models"
 author: "Jorge A. Ahumada"
-date: "March 22, 2016"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 ---
 
@@ -88,10 +88,9 @@ mod <- as.numeric(projected(model)[2,])
 # Estimate the smoothed trajectory - prediction of occupancy based on the actual sampled sites
 mods <- as.numeric(smoothed(model)[2,])
 
-plot(1:5, obs, type="p",ylim=c(0,1)); lines(1:5, mod); lines(1:5, mods, lty=2)
-#abs(mod-obs); abs(mods-obs)
+plot(1:5, obs, type="p",ylim=c(0,1),xlab="time",ylab="occupancy"); lines(1:5, mod); lines(1:5, mods, lty=2)
 ```
-Here is a function that repats this process for an arbitrary number of simulations *nsim* and also fits a logistic regression for each simulation, returning both the time series and the parameters of the logistic regression:
+Here is a function that repats this process for an arbitrary number of simulations *nsim* and also calculates the slope of the trend and the number of years required to detect change:
 
 ```{r = simulatetredn function}
 simulatetrend <- function(points = 10,days = 30, psi = 0.5, p = 0.2, phi = 0.2, gamma = 0, years = 5, nsim = 5) {
@@ -116,7 +115,7 @@ simulatetrend <- function(points = 10,days = 30, psi = 0.5, p = 0.2, phi = 0.2, 
         #list(gmlambda = gm_lambda, results = results)
 }
 ```
-Running *simulatetrend* with 100 simulations and a 10% decrease in occupancy:
+Running *simulatetrend* with **nsim** simulations and a $1-\phi$ decrease in occupancy:
 
 
 ```{r, echo = FALSE}
@@ -127,7 +126,7 @@ registerDoParallel(cl)
 ```
 ```{r, cache = TRUE}
 # Run a simulation
-test <- simulatetrend(points = 60, psi = 0.2, gamma = 0, phi = 0.95, nsim = 200, years = 10)
+test <- simulatetrend(points = 60, psi = 0.2, gamma = 0.05, phi = 0.9, nsim = 100, years = 15)
 ```
 and then graphing the results:
 ```{r,echo=FALSE}
