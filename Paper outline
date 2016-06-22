@@ -19,18 +19,35 @@ Approach:
 -       5 levels of sample size * 4 levels of change * 4 levels number of days * 5 levels of detection probabiluity * three levels of number of years = 1200 combinations
 
 PART II
-Examine sensitivity of the WPI to changes in occupancy, richness and evenness
+Test sensitivity of WPI to changes in species richness, evenness and occupancy. How many years does it take to detect significant change?
 
-	Questions:
-1)	When all species are declining at X%, at what point does the WPI detect change?
-2)	When all species are increasing at X%, at what point does the WPI detect change?	
-3)	What proportion of species need to be lost before seeing changes in the WPI?
-4)	What level of change in dominance/evenness is needed before seeing changes?
+Hold constant the mixtures of rare, moderate and common species for scenarios A and B
 
-	Approach:
-•	Simulate an X% decline in occupancy (set colonization = 0), then simulate an X% increase in occupancy (set extinction = 0)
-•	Start with most pessimistic pattern of all species decreasing at X% (e.g. 10%, 20%, 30%, 50%); similarly start with most optimistic pattern of all species increasing at X%
-•	For changes in species richness, remove X% of species at the middle time step (e.g. 1%, 10%, 25%, 50%)
-•	For changes in dominance/evenness, alter community from completely even to a single species dominating.
+A.) Changes in occupancy; Create a distribution of communities; hold constant the number of species at 20 species; vary survival rates (95%, 90%, 85%); run WPI 100 times to get error distribution for each of the following 4 scenarios with each of the survival rates
+
+% increasing: 	0%	0%	0%	33%
+	
+% stable:	0%	33%	67%	33%	
+
+% decreasing:	100%	67%	33%	33%	
+
+B.) Changes in species richness
+1.	Create distribution of communities of 10, 20, 50 and 100 species with stochastic occupancy trends; hold constant 90 CT points and 30 days of sampling; run WPI 100 times to get error distribution
+2.	Look for change in % of community eliminated per year (0, 5%, 10%, 20%, 50%); run WPI 100 times for each scenario to get error distribution 
+3.	Identify under what conditions the WPI detects a significant change in species richness
+
+C.) Changes in evenness
+Evenness can be measured as 1 minus the variance in the occupancies. All species start at the same survival values but species have different rates of change; Keep that process the same, change the number of species and the final evenness
+	Use species richness dataset, but fill in missing species by doubling occupancy of a remaining species as each species is lost
+
+Step 1: write code to create a community starting with raw binary data for each species; this would be an extension of data.generator(), which is the underlying function creating a population; give it an input matrix of initial conditions. This will be two separate sets of communities (one for changes in occupancy and the other for changes in species richness and evenness).
+
+PLAN MOVING FORWARD
+Lydia will figure out current problems ASAP definitely by 4/29
+Jorge will write community simulator code by end of Friday 4/29
+Plan for meeting on 4/29 at 5 pm
+Next, Jorge will work on species richness simulator, Lydia will work on occupancy simulator/scenario
+Aim to meet again to talk 5/13; if Jorge has time before conferences can start working on evenness
+
 
 
