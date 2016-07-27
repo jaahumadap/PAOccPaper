@@ -152,7 +152,7 @@ no_cores <- detectCores() - 1
 cl<-makeCluster(no_cores)
 registerDoParallel(cl)
 
-test <- simulatetrend(points = 10, psi = 0.9, gamma = 0, phi = 0.8, nsim = 100)
+test <- simulatetrend(points = 60, psi = 0.9, gamma = 0, phi = 0.8, nsim = 100)
 
 res <- data.frame(test)
 slopes <- data.frame(slopes = test[,ncol(res)])
@@ -165,3 +165,54 @@ names(res)[2] <- "year"
 ggplot(res, aes(x=year,y=value, group=id))+geom_line(alpha=0.2)
 ggplot(res, aes(x=year, y= value)) + geom_violin() + geom_line(aes(group=id),alpha=0.2)
 ggplot(slopes,aes(x=slopes)) + geom_histogram() + geom_density()
+
+#sims <- read.csv("det.year.csv",h=T)
+sims <- read.csv("det.year_2016-06-29.csv",h=T)
+#levels(sims$pts) <- c(10,120,20,30,60,90)
+#sims$pts <- as.numeric(as.character(sims$pts))
+#names(sims)
+#qwe<-sims[49:(49+47),]
+#head(sims)
+library(dplyr)
+library(ggplot2)
+
+ggplot(sims, aes(x=pts,y=z.first, color = days)) + geom_point()
+plot(sims$y.first)
+plot(sims$z.first)
+sims$y.first <- ifelse(sims$y.first == 0, 15, sims$y.first)
+sims$z.first <- ifelse(sims$z.first == 0, 12, sims$z.first)
+plot(sims$y.first)
+
+ggplot(sims, aes(x=pts,y=y.first, color = days)) + geom_point()
+
+ggplot(sims, aes(x=pts,y=z.first, colour = days)) + geom_jitter() + facet_grid(p ~  phi)
+
+simsp2 <- filter(sims, p == 0.2)
+ggplot(sims, aes(x=pts, y=z.first, color = p)) + geom_jitter(size=2) + facet_grid(days ~  phi)
+ggplot(simsp2, aes(x=pts, y=z.first, color = p)) + geom_jitter(size=2) + facet_grid(days ~  phi)
+
+#Correcting mapping problem with number of days
+newdays <- numeric()
+indx <- which(sims$days == 60)
+newdays[indx] <- 15
+indx <- which(sims$days == 45)
+newdays[indx] <- 30
+indx <- which(sims$days == 30)
+newdays[indx] <- 45
+indx <- which(sims$days == 15)
+newdays[indx] <- 60
+
+sims <- mutate(sims, newdays = newdays)
+
+simsp2 <- filter(sims, days < 60)
+ggplot(simsp2, aes(x=pts, y=z.first, color = as.character(p))) + geom_jitter(size=2) + facet_grid(days ~  phi) + geom_smooth(span = 1, se = FALSE) + labs(x = "Number of points in deployment", y="Number of years to detect change") + scale_color_discrete(name="Detection prob") + theme(legend.position = "left") + ylim(0,13) + xlim(0,140)
+#expand_limits(y=c(1,13))
+
+sims <- read.csv("det.year_2016-06-29.csv",h=T)
+levels(sims$pts) <- c(10,120,20,30,60,90)
+sims$pts <- as.numeric(as.character(sims$pts))
+names(sims)
+#qwe<-sims[49:(49+47),]
+#head(sims)
+library(dplyr)
+library(ggplot2)
