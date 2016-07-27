@@ -216,3 +216,8 @@ names(sims)
 #head(sims)
 library(dplyr)
 library(ggplot2)
+
+test <- read.csv("det.year-2.csv",h=T)
+test$z.first <- ifelse(test$z.first == 0, 12, test$z.first)
+
+ggplot(test, aes(x=pts, y=z.first, color = as.character(p))) + geom_jitter(size=2) + facet_grid(days ~  phi) + geom_smooth(span = 1, se = FALSE) + labs(x = "Number of points in deployment", y="Number of years to detect change") + scale_color_discrete(name="Detection prob") + theme(legend.position = "left") + ylim(0,13) + xlim(0,140)

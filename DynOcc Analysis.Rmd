@@ -73,7 +73,7 @@ data.generator<-function(points,days,psi1,p,phi,gamma,years) {
 Simulate some data:
 ```{r}
 set.seed(400)
-data <- data.generator(points = 60,days = 30, psi1 = 0.5, p = 0.5, phi = 0.99, 
+data <- data.generator(points = 60,days = 30, psi1 = 0.5, p = 0.08, phi = 0.95, 
                        gamma = 0, years = 10)
 
 #Look at the first year of data
