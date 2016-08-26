@@ -160,10 +160,11 @@ examine the distribution of the geometric mean of $\lambda=\frac{\psi_{t+1}}{\ps
 ggplot(slopes,aes(x=slopes)) + geom_histogram() + geom_density()
 ```
 and the number of years it takes to detect the change
-```{r}
+```{r Years of change}
 names(changes) <- c(1:ncol(changes))
-confint <- apply(changes,2,quantile,c(0.1,0.9))
-y <- which(round(confint[1,],2) > 0)
+alpha <- 0.05
+confint <- apply(changes,2,quantile,alpha)
+y <- which(round(confint,2) > 0)
 ifelse(length(y)==0,0,min(y))
 
 #graph the results
