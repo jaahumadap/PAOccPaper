@@ -29,7 +29,7 @@ gm_mean = function(x, na.rm=TRUE, zero.propagate = FALSE){
 
 ### Function to simulate the data
 Using this function to simulate a dynamic occupancy model with *n* points, *t* years (primary periods), *d* days (secondary periods), initial occupancy $\psi$, survival probability $\phi$, colonization probability $\gamma$ and detection probabilty *p*:
-```{r cars}
+```{r}
 data.generator<-function(points,days,psi1,p,phi,gamma,years) {
         require(unmarked)
         psi <- rep(NA, years)                       # Occupancy probability
@@ -72,8 +72,8 @@ data.generator<-function(points,days,psi1,p,phi,gamma,years) {
 ```
 Simulate some data:
 ```{r}
-set.seed(400)
-data <- data.generator(points = 60,days = 30, psi1 = 0.5, p = 0.08, phi = 0.95, 
+#set.seed(400)
+data <- data.generator(points = 70,days = 30, psi1 = 0.5, p = 0.1, phi = 0.9, 
                        gamma = 0, years = 10)
 
 #Look at the first year of data
@@ -82,7 +82,7 @@ summary(data$yUMF)
 Now, fit a dynamic occupancy model using colext
 ```{r}
 model <- colext(psiformula = ~1,gammaformula = ~1,epsilonformula = ~1, 
-                pformula = ~1, data = data$yUMF, method = "BFGS",se = FALSE)
+                pformula = ~1, data = data$yUMF, method = "Nelder-Mead",se = FALSE)
 summary(model)
 backTransform(model,type=c("psi"))
 backTransform(model,type=c("col"))
@@ -111,7 +111,7 @@ simulatetrend <- function(points, days, psi1, p, phi, gamma, years, nsim) {
         results <- foreach(i = 1:nsim, .combine = rbind, .packages = "unmarked", .export = c("data.generator","gm_mean")) %dopar% {
                 #generate data and store projected results
                 data <- data.generator(points,days,psi1,p,phi,gamma,years)
-                model <- colext(~1, ~1, ~1, ~1, data = data$yUMF, method = "BFGS",se = FALSE)
+                model <- colext(~1, ~1, ~1, ~1, data = data$yUMF, method = "Nelder-Mead",se = FALSE)
                 timeseries <- as.numeric(smoothed(model)[2,])
                 
                 #calculate difference between year 1 and year n
@@ -137,7 +137,7 @@ registerDoParallel(cl)
 ```
 ```{r, cache = TRUE}
 # Run a simulation
-test <- simulatetrend(points = 60, days = 30, psi1 = 0.2, gamma = 0, phi = 0.9, nsim = 100, years = 10, p = 0.5)
+test <- simulatetrend(points = 120, days = 30, psi1 = 1, gamma = 0, phi = 0.9, nsim = 100, years = 10, p = 0.1)
 ```
 and then graphing the results:
 ```{r,echo=FALSE}
