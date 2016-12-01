@@ -7,9 +7,9 @@ source(file="dynoFunctions.R")
 # Generate list of input values for simulation study where each item in the list has a vector of input values for
 # function(points, days, psi,p ,phi ,gamma, years, nsim)
 pts <- c(1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120)
-days <- c(1, 15, 30, 45, 60)
-psi1 <- c(0.1, 0.3, 0.5, 0.7, 0.9, 1.0)
-p <- c(0.1, 0.2, 0.3, 0.4, 0.5)
+days <- c(1, 10, 20, 30, 40, 50, 60)
+psi1 <- c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
+p <- c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
 phi <- c(0.99, 0.95, 0.9, 0.85)
 g <- 0
 yrs <- c(10)
@@ -46,8 +46,41 @@ for(m in 1:dim(mat)[1]){
 stopCluster(cl)
 write.csv(melt.list(result), file="result.csv", row.names=TRUE)
 
+
+mode <- function(data) { 
+  # Function for mode estimation of a continuous variable 
+  # Kernel density estimation by Ted Harding & Douglas Bates (found on RSiteSearch)	
+
+    x<-data 
+    lim.inf=min(x)-1; lim.sup=max(x)+1 
+
+    hist(x,freq=FALSE,breaks=seq(lim.inf,lim.sup,0.2)) 
+    s<-density(x,from=lim.inf,to=lim.sup,bw=0.2) 
+    n<-length(s$y) 
+    v1<-s$y[1:(n-2)]; 
+    v2<-s$y[2:(n-1)]; 
+    v3<-s$y[3:n] 
+    ix<-1+which((v1<v2)&(v2>v3)) 
+    
+    lines(s$x,s$y,col="red") 
+    points(s$x[ix],s$y[ix],col="blue") 
+    
+    md <- s$x[which(s$y==max(s$y))] 
+
+    md 
+  } 
+
+
 # Calculate the first year in which can can be detected (z.first) for 80%, 90% and 95% confidence intervals for each parameter combination
 result2 <- list()
+r2.mean <- vector()
+r2.median <- vector()
+r2.mode <- vector()
+r2.var <- vector()
+input <- vector()
+i.value <- vector()
+transition <- c(1:9)
+newtable <- list()
 z.first80 <- vector()
 z.first90 <- vector()
 z.first95 <- vector()
@@ -64,21 +97,32 @@ for(i in 1:length(result)){
   result2[[i]] <- res
   names(result2)[i] <- names(result)[i] # only if running loop 2 directly after loop 1, otherwise names order differs
   names(changes) <- c(1:ncol(changes))
+  r2.mean <- apply(changes, 2, mean) 
+  r2.median <- apply(changes, 2, median)
+  r2.mode <- apply(changes, 2, mode)
+  r2.var <- apply(changes, 2, var) 
   confint80 <- apply(changes,2,quantile,c(0.1,0.9))
   confint90 <- apply(changes,2,quantile,c(0.05,0.95))
   confint95 <- apply(changes,2,quantile,c(0.025,0.975))
+  i.value <- rep(i, 9)
+  input <- rep(hold[i], 9)
+  newtable[[i]] <- data.frame(t(rbind(r2.mean, r2.median, r2.mode, r2.var, confint80, confint90, confint95, input, i.value, transition)))
+  colnames(newtable[[i]]) <- c("mean", "median", "mode", "var", "80ci.low", "80ci.high", "90ci.low", "90ci.high", "95ci.low", "95ci.high", "input", "i.value", "transition")
   z80 <- which(round(confint80[1,],2) > 0) 
   z90 <- which(round(confint90[1,],2) > 0)
   z95 <- which(round(confint95[1,],2) > 0)
   z.first80[i] <- ifelse(length(z80)==0,0,min(z80))
   z.first90[i] <- ifelse(length(z90)==0,0,min(z90))
   z.first95[i] <- ifelse(length(z95)==0,0,min(z95))
- 
 }
 
+mat2 <- mat[rep(1:nrow(mat), each=9), ]
+newtable2 <- ldply(.data=newtable, .fun="[")
+newtable2 <- data.frame(mat2, newtable2)
+write.csv(newtable2, file="newtable2.csv")
 
 det.year <- data.frame(z.first80=z.first80, z.first90=z.first90, z.first95=z.first95, mat, input=names(result)) 
 write.csv(det.year, file="det.year.csv", row.names=TRUE)
 write.csv(melt.list(result2), file="result2.csv", row.names=TRUE)
-
+write.csv(melt.list(newtable), file="newtable.csv", row.names=TRUE)
 

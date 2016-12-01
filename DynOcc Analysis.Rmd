@@ -1,4 +1,4 @@
----
+?quantile---
 title: "Simulation analysis - dynamic models"
 author: "Jorge A. Ahumada"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -73,7 +73,7 @@ data.generator<-function(points,days,psi1,p,phi,gamma,years) {
 Simulate some data:
 ```{r}
 #set.seed(400)
-data <- data.generator(points = 70,days = 30, psi1 = 0.5, p = 0.1, phi = 0.9, 
+data <- data.generator(points = 100, days = 1, psi1 = 0.1, p = 0.1, phi = 0.95, 
                        gamma = 0, years = 10)
 
 #Look at the first year of data
@@ -137,7 +137,7 @@ registerDoParallel(cl)
 ```
 ```{r, cache = TRUE}
 # Run a simulation
-test <- simulatetrend(points = 120, days = 30, psi1 = 1, gamma = 0, phi = 0.9, nsim = 100, years = 10, p = 0.1)
+test <- simulatetrend(points = 100, days = 1, psi1 = 0.1, gamma = 0, phi = 0.95, nsim = 250, years = 10, p = 0.1)
 ```
 and then graphing the results:
 ```{r,echo=FALSE}
@@ -165,7 +165,7 @@ names(changes) <- c(1:ncol(changes))
 
 # This can change to 0.1, 0.01, etc.
 
-alpha <- 0.05
+alpha <- 0.1
 confint <- apply(changes,2,quantile,alpha)
 y <- which(round(confint,2) > 0)
 ifelse(length(y)==0,0,min(y))
