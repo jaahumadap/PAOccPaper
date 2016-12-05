@@ -221,3 +221,43 @@ test <- read.csv("det.year_2016-07-28.csv",h=T)
 test$z.first <- ifelse(test$z.first == 10, NA, test$z.first)
 
 ggplot(test, aes(x=pts, y=z.first, color = as.character(p))) + geom_jitter(size=2) + facet_grid(days ~  phi) + geom_smooth(span = 1, se = FALSE) + labs(x = "Number of points in deployment", y="Number of years to detect change") + scale_color_discrete(name="Detection prob") + theme(legend.position = "left") + ylim(0,13) + xlim(0,140)
+
+
+# Looking at new files
+
+#newdata <- read.csv("result_2016-10-08.csv",h=T)
+#row <- filter(newdata, pts == 1, days == 10, psi1 == 0.1, p == 0.1, phi == 0.95)
+#row$mode <- as.numeric(as.character(row$mode))
+#row <- row[,c(10:19,22)]
+#row <- melt(row,id.vars = "transition")
+require(tidyverse)
+newdata <- readRDS("result_2016-10-08.rds.download/result_2016-10-08.rds")
+headers <- read.csv("list_labels.csv", h = T)
+headers <- select(.data = headers, pts, days, psi1, p, phi)
+
+summarize_sims <- function (matrix, alpha = c(0.05,0.95)) {
+        
+        matrix <- matrix[,1:10]
+        cl <- apply(matrix, 2, quantile, alpha)
+        mean <- apply(matrix, 2, mean, na.rm =T)
+        median <- apply(matrix, 2, median, na.rm = T)
+        c(cl[1,], cl[2,], mean, median)
+        
+}
+
+res80 <- sapply(newdata,summarize_sims,alpha = c(0.1,0.9),simplify = T, USE.NAMES = F)
+res80 <- t(res80)
+res90 <- sapply(newdata,summarize_sims,alpha = c(0.05,0.95),simplify = T, USE.NAMES = F)
+res90 <- t(res90)
+res95 <- sapply(newdata,summarize_sims,alpha = c(0.025,0.975),simplify = T, USE.NAMES = F)
+res95 <- t(res95)
+timeseriesData <- data.frame(headers,res80,res90,res95)
+rownames(timeseriesData) <- NULL
+write.csv(timeseriesData,file = "timeseriesData.csv", row.names = F)
+
+detYear <- read_csv("~/Analyses/PAOccPaper/det.year_2016-10-08.csv")
+timeseriesData <- data.frame(detYear[,2:4],timeseriesData)
+
+data <- readRDS("ShinyApps/powerPaper/data")
+row <- filter(data, pts == 60, days == 30, psi1 == 0.5, p == 0.5, phi == 0.9)
+summary(data[,1:8])

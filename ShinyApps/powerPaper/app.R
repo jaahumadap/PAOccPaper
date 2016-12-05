@@ -24,7 +24,7 @@ ui <- fluidPage(theme = "style.css",
                 ),
         
                 fluidRow(
-                        wellPanel(tags$p("Success of a monitoring project based on species occupancy  depends largely on the ability of the monitoring system to detect a given level of change. With this app you can interactively explore how various design features of a monitoring project affect the ability to detect a given level of change in occupancy under various conditions: number of points sampled per year, number of days the sensors are running, the initial occupancy of the species, and the detection probability. The horizontal line in the graph shows the number of years it takes to detect the selected amount of change in occupancy."))
+                        wellPanel(tags$p("Success of Occupancy-based species monitoring programs depends largely on the ability to detect a given level of change. Sensitivity to change is a sampling issue; the more intense the sampling the more sensitive the program is to detecting change. With the PowerSensor! App, you can interactively explore how the various design features of a monitoring program affect the ability to detect a given level of change in occupancy. This app allows you manipulate the number of points sampled per season, number of days the sensors are running, and initial characteristics of the species, including initial occupancy and detection probability. The output is a graph of the null dynamic occupancy model over seasons (denoted as years) with confidence intervals, and a vertical line highlighting the estimated number of years to detect the trend under the conditions of the simulation."))
                 ),
         
         fluidRow(
@@ -54,7 +54,7 @@ ui <- fluidPage(theme = "style.css",
                        tags$hr(),
                        wellPanel(
                         sliderInput(inputId = "psi1", label = "What is the initial occupancy of the species?", value = 0.5, min = 0.1, max = 1, step = 0.1),
-                        sliderInput(inputId = "p", label = "What is the detection probability of the species?", value = 0.5, min = 0.1, max = 0.5, step = 0.1)
+                        sliderInput(inputId = "p", label = "What is the detection probability of the species?", value = 0.5, min = 0.1, max = 1, step = 0.1)
                        )
                        )
         
