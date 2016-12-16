@@ -20,46 +20,55 @@ gm_mean = function(x, na.rm=TRUE, zero.propagate = FALSE){
 }
 
 
-data.generator<-function(points,days,psi,p,phi,gamma,years) {
+data.generator<-function(points,days,psi1,p,phi,gamma,years) {
         require(unmarked)
-        #first year of data
-        y1<-matrix(NA,nr=points,nc=days)
-        #generate the expected occupancies
-        z<-rbinom(points,1,psi)
-        #generate the observations
-        for(i in 1:points)
-                y1[i,]<-rbinom(days,1,z[i]*p)
-        #subsequent years
-        #three dimensional matrix to store the results
-        yk<-array(NA,dim=c(points,days,years))
-        yk[,,1]<-y1
-        for(k in 2:years){
-        #generate the deterministic part of the model
-                occ<-apply(yk[,,k-1],1,max,na.rm=T)
-                z<-rbinom(points,1,occ*phi+(1-occ)*gamma)
-        #generate the observations
-        for(i in 1:points)
-                yk[i,,k]<-rbinom(days,1,z[i]*p)
-     
-        }  
-        # convert results to a two dimensional matrix for colext
-        yk <- matrix(yk, points, days*years)
-        #ny <- matrix(as.character(1:years),nrow(yk), years, byrow=TRUE)
+        psi <- rep(NA, years)                       # Occupancy probability
+        muZ <- z <- array(dim = c(points, years))        # Expected and realized occurrence
+        y <- array(NA, dim = c(points, days, years))        # Detection histories
+        
+        psi[1] <- psi1
+        
+        # Generate latent states of occurrence
+        # First year
+        z[,1] <- rbinom(points, 1, psi[1])           # Initial occupancy state
+        # Later years
+        for(i in 1:points){                          # Loop over sites
+                for(k in 2:years){                        # Loop over years
+                        muZ[k] <- z[i, k-1]*phi + (1-z[i, k-1])*gamma
+                        z[i,k] <- rbinom(1, 1, muZ[k])
+                }
+        }
+        
+        # Generate detection/non-detection data
+        for(i in 1:points){
+                for(k in 1:years){
+                        prob <- z[i,k] * p
+                        for(j in 1:days){
+                                y[i,j,k] <- rbinom(1, 1, prob)
+                        }
+                }
+        }
+        # Compute annual population occupancy
+        for (k in 2:years){
+                psi[k] <- psi[k-1]*phi + (1-psi[k-1])*gamma
+        }
+        
+        yk <- matrix(y, points, days*years)
+        
         # store data in an unmarkedMultFrame object so it is ready for analysis
         yUMF <- unmarkedMultFrame(y = yk, numPrimary = years)
-        yUMF
+        list(yUMF = yUMF,psi = psi)
+} 
 } 
 
-simulatetrend <- function(points, days, psi, p, phi, gamma, years, nsim) {
+simulatetrend <- function(points, days, psi1, p, phi, gamma, years, nsim) {
         #store results
         #gm_lambda <- numeric()
         time <- 1:years
-        seeds <- seeds
         results <- foreach(i = 1:nsim, .combine = rbind, .packages = "unmarked", .export = c("data.generator","gm_mean")) %dopar% {
                 #generate data and store projected results
-                set.seed(seeds[i])
-                data <- data.generator(points,days,psi,p,phi,gamma,years)
-                model <- colext(~1, ~1, ~1, ~1, data = data, method = "BFGS",se = FALSE)
+                data <- data.generator(points,days,psi1,p,phi,gamma,years)
+                model <- colext(~1, ~1, ~1, ~1, data = data$yUMF, method = "Nelder-Mead",se = FALSE)
                 timeseries <- as.numeric(smoothed(model)[2,])
                 
                 #calculate difference between year 1 and year n
@@ -71,7 +80,6 @@ simulatetrend <- function(points, days, psi, p, phi, gamma, years, nsim) {
                 c(timeseries,diff1_n,lambda)
         }
         results
-        #list(gmlambda = gm_lambda, results = results)
 }
 
 
