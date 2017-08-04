@@ -59,7 +59,7 @@ data.generator<-function(points,days,psi1,p,phi,gamma,years) {
         yUMF <- unmarkedMultFrame(y = yk, numPrimary = years)
         list(yUMF = yUMF,psi = psi)
 } 
-} 
+ 
 
 simulatetrend <- function(points, days, psi1, p, phi, gamma, years, nsim) {
         #store results

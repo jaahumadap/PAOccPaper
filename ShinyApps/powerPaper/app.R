@@ -24,7 +24,7 @@ ui <- fluidPage(theme = "style.css",
                 ),
         
                 fluidRow(
-                        wellPanel(tags$p("Success of Occupancy-based species monitoring programs depends largely on the ability to detect a given level of change. Sensitivity to change is a sampling issue; the more intense the sampling the more sensitive the program is to detecting change. With the PowerSensor! App, you can interactively explore how the various design features of a monitoring program affect the ability to detect a given level of change in occupancy. This app allows you manipulate the number of points sampled per season, number of days the sensors are running, and initial characteristics of the species, including initial occupancy and detection probability. The output is a graph of the null dynamic occupancy model over seasons (denoted as years) with confidence intervals, and a vertical line highlighting the estimated number of years to detect the trend under the conditions of the simulation."))
+                        wellPanel(tags$p("Success of Occupancy-based species monitoring programs depends largely on the ability to detect a given level of change. Sensitivity to change is a sampling issue but also depends on initial species occupancy and detection probability; the more intense the sampling and the more common and detectable the species is the more sensitive the survey is to detect change. With the PowerSensor! app, you can interactively explore how the various design features of a monitoring program and species properties affect the ability to detect a given level of change in occupancy. This app allows you manipulate the number of points sampled per season, number of days the sensors are running, and initial characteristics of the species, including initial occupancy and detection probability. The output is a graph of the null dynamic occupancy model over seasons (denoted as years) with confidence intervals, and a vertical line highlighting the estimated number of years to detect the trend under the conditions of the simulation."))
                 ),
         
         fluidRow(
@@ -43,8 +43,8 @@ ui <- fluidPage(theme = "style.css",
                        tags$h4("Field design parameters", style = "color:blue"),
                        tags$hr(),
                        wellPanel(
-                        sliderInput(inputId = "points", label = "How many sampling points are you deploying?", value = 30, min = 10, max = 120, step = 10),
-                        sliderInput(inputId = "days", label = "How many days are you leaving your sensors in the field?", value = 30, min = 10, max = 60, step = 10)
+                               selectInput(inputId = "points",label = "How many sampling points are you deploying?", choices = c(1,2,3,4,5,10,20,30,40,50,60,70,80,90,100,110,120), selected = 30),
+                               selectInput(inputId = "days", label = "How many days are you leaving your sensors in the field?", choices = c(1,2,10,20,30,40,50,60), selected = 10)
                        )
                        ),
                 
@@ -65,7 +65,7 @@ ui <- fluidPage(theme = "style.css",
         )
 
 
-powerData <- readRDS("data")
+powerData <- readRDS("AllSimulations.rds")
 powerData$percent <- NA
 powerData$percent[which(powerData$phi == 0.99)] <- "1%"
 powerData$percent[which(powerData$phi == 0.95)] <- "5%"
