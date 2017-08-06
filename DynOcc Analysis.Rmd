@@ -1,4 +1,4 @@
-?quantile---
+---
 title: "Simulation analysis - dynamic models"
 author: "Jorge A. Ahumada"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -73,7 +73,7 @@ data.generator<-function(points,days,psi1,p,phi,gamma,years) {
 Simulate some data:
 ```{r}
 #set.seed(400)
-data <- data.generator(points = 100, days = 1, psi1 = 0.1, p = 0.1, phi = 0.95, 
+data <- data.generator(points = 30, days = 10, psi1 = 0.7, p = 0.1, phi = 0.95, 
                        gamma = 0, years = 10)
 
 #Look at the first year of data
@@ -101,7 +101,7 @@ mods <- as.numeric(smoothed(model)[2,])
 
 plot(1:10, data$psi, type="p",ylim=c(0,1),xlab="time",ylab="occupancy"); lines(1:10, mod); lines(1:10, mods, lty=2)
 ```
-Here is a function that repats this process for an arbitrary number of simulations *nsim* and also calculates the slope of the trend and the number of years required to detect change:
+Here is a function that repeats this process for an arbitrary number of simulations *nsim* and also calculates the slope of the trend and the number of years required to detect change:
 
 ```{r = simulatetredn function}
 simulatetrend <- function(points, days, psi1, p, phi, gamma, years, nsim) {
@@ -137,7 +137,7 @@ registerDoParallel(cl)
 ```
 ```{r, cache = TRUE}
 # Run a simulation
-test <- simulatetrend(points = 100, days = 1, psi1 = 0.1, gamma = 0, phi = 0.95, nsim = 250, years = 10, p = 0.1)
+test <- simulatetrend(points = 30, days = 10, psi1 = 0.7, gamma = 0, phi = 0.95, nsim = 250, years = 10, p = 0.1)
 ```
 and then graphing the results:
 ```{r,echo=FALSE}
@@ -149,7 +149,6 @@ changes <- data.frame(test[,(ncol(res)/2+1):(ncol(res)-1)])
 res <- res[,-c((ncol(res)/2+1):(ncol(res)))]
 res <- data.frame(res, id = 1:nrow(res))
 names(res) <- c(1:(ncol(res)-1), "id")
-
 res <- melt(res,c("id"), variable_name = "year")
 #names(res)[2] <- "year"
 ggplot(res, aes(x=year, y= value)) + geom_violin() + geom_line(aes(group=id),alpha=0.2)
@@ -165,10 +164,10 @@ names(changes) <- c(1:ncol(changes))
 
 # This can change to 0.1, 0.01, etc.
 
-alpha <- 0.1
-confint <- apply(changes,2,quantile,alpha)
-y <- which(round(confint,2) > 0)
-ifelse(length(y)==0,0,min(y))
+alpha80 <- c(0.05,0.95)
+confint <- apply(changes,2,quantile,alpha80)
+y <- which(round(confint[1,], 2) > 0 & round(confint[2,]-confint[1,], 2) > 0)
+ifelse(!length(y),0,min(y))
 
 #graph the results
 changes <- melt(changes, variable_name = "year")

@@ -1,13 +1,16 @@
 ############ DYNAMIC OCCUPANCY SIMULATION STUDY ##############
 ########## Ahumada, Beaudrot, O'Brien and Jansen ############# 
-
+library(tidyverse)
 # Load functions for simulating data
 source(file="dynoFunctions.R")
 
 # Generate list of input values for simulation study where each item in the list has a vector of input values for
 # function(points, days, psi,p ,phi ,gamma, years, nsim)
-pts <- c(1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120)
-days <- c(1, 10, 20, 30, 40, 50, 60)
+#pts <- c(1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120)
+#pts <- c(2,3,4,5)
+pts <- c(1, 2, 3, 4, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120)
+days <- c(2)
+#days <- c(1, 10, 20, 30, 40, 50, 60)
 psi1 <- c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
 p <- c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
 phi <- c(0.99, 0.95, 0.9, 0.85)
@@ -72,6 +75,7 @@ mode <- function(data) {
 
 
 # Calculate the first year in which can can be detected (z.first) for 80%, 90% and 95% confidence intervals for each parameter combination
+result <- readRDS("ShinyApps/powerPaper/results_2days_only.rds")
 result2 <- list()
 r2.mean <- vector()
 r2.median <- vector()
@@ -84,6 +88,7 @@ newtable <- list()
 z.first80 <- vector()
 z.first90 <- vector()
 z.first95 <- vector()
+hold <- vector()
 
 for(i in 1:length(result)){
   print(i)
@@ -108,12 +113,12 @@ for(i in 1:length(result)){
   input <- rep(hold[i], 9)
   newtable[[i]] <- data.frame(t(rbind(r2.mean, r2.median, r2.mode, r2.var, confint80, confint90, confint95, input, i.value, transition)))
   colnames(newtable[[i]]) <- c("mean", "median", "mode", "var", "80ci.low", "80ci.high", "90ci.low", "90ci.high", "95ci.low", "95ci.high", "input", "i.value", "transition")
-  z80 <- which(round(confint80[1,],2) > 0) 
-  z90 <- which(round(confint90[1,],2) > 0)
-  z95 <- which(round(confint95[1,],2) > 0)
-  z.first80[i] <- ifelse(length(z80)==0,0,min(z80))
-  z.first90[i] <- ifelse(length(z90)==0,0,min(z90))
-  z.first95[i] <- ifelse(length(z95)==0,0,min(z95))
+  z80 <- which(round(confint80[1,], 2) > 0 & round(confint80[2,]-confint80[1,], 2) > 0)
+  z90 <- which(round(confint90[1,], 2) > 0 & round(confint90[2,]-confint90[1,], 2) > 0)
+  z95 <- which(round(confint95[1,], 2) > 0 & round(confint95[2,]-confint95[1,], 2) > 0)
+  z.first80[i] <- ifelse(!length(z80),0,min(z80))
+  z.first90[i] <- ifelse(!length(z90),0,min(z90))
+  z.first95[i] <- ifelse(!length(z95),0,min(z95))
 }
 
 mat2 <- mat[rep(1:nrow(mat), each=9), ]
@@ -122,7 +127,7 @@ newtable2 <- data.frame(mat2, newtable2)
 write.csv(newtable2, file="newtable2.csv")
 
 det.year <- data.frame(z.first80=z.first80, z.first90=z.first90, z.first95=z.first95, mat, input=names(result)) 
-write.csv(det.year, file="det.year.csv", row.names=TRUE)
+write.csv(det.year, file="det.year_2days_only.csv", row.names=TRUE)
 write.csv(melt.list(result2), file="result2.csv", row.names=TRUE)
 write.csv(melt.list(newtable), file="newtable.csv", row.names=TRUE)
 

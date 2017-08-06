@@ -1,5 +1,5 @@
 # R code for power app
-# Jorge A. Ahumada -- Conservation International 
+# Jorge A. Ahumada -- Conservation International - Moore Center for Science
 
 library(shiny)
 library(ggplot2)
