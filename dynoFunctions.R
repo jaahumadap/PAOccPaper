@@ -1,9 +1,89 @@
-# DynOccFunctions
+# DynOccFunctions for power Analysis paper
 library(unmarked)
 library(ggplot2)
 library(parallel)
 library(foreach)
 library(doParallel)
+library(plyr)
+library(dplyr)
+
+# function to plot the parameter confidence limits for a given param values
+plotCI_parms <- function(pts.n, days.n, psi1.n, p.n, phi.n, alpha){
+        data <- dplyr::filter(det.year, pts == pts.n, days == days.n, psi1 == psi1.n, p == p.n, phi == phi.n)
+        
+        if(alpha == 80){
+                plot(1:10, data[,10:19], type = "b", ylim=c(0,1), col = "red", main = paste(data[,5:9], collapse = ", "))
+                points(1:10, data[,20:29], type = "b")
+                abline(v = data[,2])
+                
+        }
+        else if(alpha == 90) {
+                plot(1:10, data[,50:59], type = "b", ylim=c(0,1), col = "red", main = paste(data[,5:9], collapse = ", "))
+                points(1:10, data[,60:69], type = "b")
+                abline(v = data[,3])
+        }
+        else {
+                plot(1:10, data[,90:99], type = "b", ylim=c(0,1), col = "red", main = paste(data[,5:9], collapse = ", "))
+                points(1:10, data[,100:109], type = "b")
+                abline(v = data[,4])
+                
+        }
+        return(data[,1])
+}
+
+
+# little function to plot the confidence limits for a given parameter combo
+
+plotCIs <- function(row, higher, lower){
+        
+        plot(1:10,higher[row,-11], type = "b", ylim=c(0,1), col = "red", main = paste(c(params[row,4:8]," row=",row), collapse = ","))
+        points(1:10,lower[row,], type = "b")
+        indx <- which(years_change[row,] == T)
+        abline(v = min(indx)+1)
+}
+
+#function to examine weird plots
+look_plots <- function(index) {
+        for(i in 1:length(index)) {
+                plotCIs(index[i])
+                readline(prompt="Press [enter] to continue")
+        }
+        
+}
+
+# function to calculate the year changed is detected - uses matrix of year_change as a TRUE/FALSE
+# 
+f_change <- function(row) {
+        indx <- which(row)
+        if(!length(indx))
+                return(NA)
+        else
+                min(indx)+1
+}
+
+
+#### Conditions to find out abnormal patterns in the predictions
+# Condition 1: Check that hi - low is bigger than 0
+condition1 <- function(i,higher,lower) {
+        temp <- abs(higher[i,] - lower[i,])
+        temp <- apply(temp, 1, function(j) {sum(j, na.rm = TRUE) > 0.1})
+        temp
+} # row 1 passess this condition
+# Condition 2: Check that there are no oscillations within the time series
+condition2 <- function(higher, lower) {
+        temp <- acf(as.numeric(higher), plot = F)
+        high_oscill <- sum(temp$acf > 0, na.rm = T) >= 5
+        temp <-acf(as.numeric(lower), plot = F)
+        low_oscill <- sum(temp$acf > 0, na.rm = T) >= 5
+        if(high_oscill | low_oscill)
+                return(FALSE)
+        else
+                return(TRUE)
+        
+}
+
+
+
 
 gm_mean = function(x, na.rm=TRUE, zero.propagate = FALSE){
   if(any(x < 0, na.rm = TRUE)){

@@ -24,7 +24,7 @@ ui <- fluidPage(theme = "style.css",
                 ),
         
                 fluidRow(
-                        wellPanel(tags$p("Success of Occupancy-based species monitoring programs depends largely on the ability to detect a given level of change. Sensitivity to change is a sampling issue but also depends on initial species occupancy and detection probability; the more intense the sampling and the more common and detectable the species is the more sensitive the survey is to detect change. With the PowerSensor! app, you can interactively explore how the various design features of a monitoring program and species properties affect the ability to detect a given level of change in occupancy. This app allows you manipulate the number of points sampled per season, number of days the sensors are running, and initial characteristics of the species, including initial occupancy and detection probability. The output is a graph of the null dynamic occupancy model over seasons (denoted as years) with confidence intervals, and a vertical line highlighting the estimated number of years to detect the trend under the conditions of the simulation."))
+                        wellPanel(tags$p("Success of Occupancy-based species monitoring programs depends largely on the ability to detect a given level of change. Sensitivity to change is a sampling issue but also depends on initial species occupancy and detection probability; the more intense the sampling and the more common and detectable the species is the more sensitive the survey is to detect change. With the PowerSensor! app, you can interactively explore how the various design features of a monitoring program and species properties affect the ability to detect a given level of change in occupancy. This app allows you manipulate the number of points sampled per season, number of time units (e.g days) the sensors are running, and initial characteristics of the species, including initial occupancy and detection probability. The output is a graph of the null dynamic occupancy model over seasons (denoted as time periods) with confidence intervals, and a vertical line highlighting the estimated number of time periods to detect the trend under the conditions of the simulation."))
                 ),
         
         fluidRow(
@@ -33,7 +33,7 @@ ui <- fluidPage(theme = "style.css",
                         tags$h4("Expected change and power", style = "color:blue"),
                         tags$hr(),
                        wellPanel(
-                        selectInput(inputId = "change", label = "How much annual change you want to detect?", choices = c("1%","5%","10%","15%"),selected = "5%"),
+                        selectInput(inputId = "change", label = "How much temporal change you want to detect?", choices = c("1%","5%","10%","15%"),selected = "10%"),
                         selectInput(inputId = "alpha", label = "What confidence interval do you want to use to detect change?", choices = c("80%","90%","95%"),selected = "80%")
                        )
                        ),
@@ -43,8 +43,8 @@ ui <- fluidPage(theme = "style.css",
                        tags$h4("Field design parameters", style = "color:blue"),
                        tags$hr(),
                        wellPanel(
-                               selectInput(inputId = "points",label = "How many sampling points are you deploying?", choices = c(1,2,3,4,5,10,20,30,40,50,60,70,80,90,100,110,120), selected = 30),
-                               selectInput(inputId = "days", label = "How many days are you leaving your sensors in the field?", choices = c(1,2,10,20,30,40,50,60), selected = 10)
+                               selectInput(inputId = "points",label = "How many sampling points are you deploying?", choices = c(1,2,3,4,5,10,20,30,40,50,60,70,80,90,100,110,120), selected = 60),
+                               selectInput(inputId = "days", label = "How many time units (e.g. days) are you leaving your sensors in the field?", choices = c(1,2,3,4,5,6,7,8,9,10,20,30,40,50,60), selected = 30)
                        )
                        ),
                 
@@ -54,7 +54,7 @@ ui <- fluidPage(theme = "style.css",
                        tags$hr(),
                        wellPanel(
                         sliderInput(inputId = "psi1", label = "What is the initial occupancy of the species?", value = 0.5, min = 0.1, max = 1, step = 0.1),
-                        sliderInput(inputId = "p", label = "What is the detection probability of the species?", value = 0.5, min = 0.1, max = 1, step = 0.1)
+                        selectInput(inputId = "p", label = "What is the detection probability of the species?", choices = c(0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0), selected = 0.5)
                        )
                        )
         
@@ -65,7 +65,7 @@ ui <- fluidPage(theme = "style.css",
         )
 
 
-powerData <- readRDS("AllSimulations.rds")
+powerData <- readRDS("AllSimulations_Feb8_2019_cleaned.rds")
 powerData$percent <- NA
 powerData$percent[which(powerData$phi == 0.99)] <- "1%"
 powerData$percent[which(powerData$phi == 0.95)] <- "5%"
@@ -110,13 +110,13 @@ server <- function(input, output, session){
                 }
                 
                 
-                if(!myyear){
+                if(is.na(myyear)){
                         mytext <- "more than 10"
                         myvalue <- 11
                 }
                 else {
-                        mytext <- myyear + 1
-                        myvalue <- myyear + 1
+                        mytext <- myyear
+                        myvalue <- myyear
                 }
                 
                 list(mytext = mytext, myvalue = myvalue, col =col, myPts = myPts, lowerCI = lowerCI, higherCI = higherCI,
@@ -135,7 +135,7 @@ server <- function(input, output, session){
         })
         
         
-        output$message <- renderText({paste(myData()$mytext," years of data to detect an annual change of ",input$change)})
+        output$message <- renderText({paste(myData()$mytext," time periods of data to detect an annual change of ",input$change)})
 
 }
 
