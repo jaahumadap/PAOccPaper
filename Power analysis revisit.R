@@ -10,6 +10,7 @@ library(dplyr)
 
 source("dynoFunctions.R")
 
+#Load the file with all the simulation results
 det.year <- readRDS(file="AllSimulations_June2018_cleaned.rds")
 det.year <- rownames_to_column(det.year)
 lower80 <- det.year[,10:19]
@@ -32,12 +33,12 @@ params_change <- which(params_change > 0) # which rows have parameters where cha
 y80 <- apply(years_change, 1, f_change)
 # Does the time series pass condition 1? Confidence intervals are wider than 0
 y80cond1 <- condition1(1:dim(det.year)[1], higher80[,1:10], lower80)
-# Does the time series pass condition 2?
+# Does the time series pass condition 2? There are no oscillatory dynamics
 y80cond2 <- logical()
 for(i in 1:dim(det.year)[1]) {
         y80cond2[i] <- condition2(higher80[i,1:10], lower80[i,])
 }
-#y80cond2 <- result_cond2
+
 
 temp_year80 <- cbind(y80, y80cond1, y80cond2)
 
